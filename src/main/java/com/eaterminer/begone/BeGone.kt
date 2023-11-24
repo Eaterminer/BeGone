@@ -19,12 +19,16 @@ import net.minecraft.text.Text
 import net.minecraft.util.*
 import net.minecraft.world.World
 
+
 class Teleporter(settings: Settings?) : Item(settings) {
 	override fun use(world: World, playerEntity: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
 		playerEntity.playSound(SoundEvents.BLOCK_END_PORTAL_SPAWN, 10.0f, 2.0f)
 		playerEntity.getStackInHand(hand).count = 0
 		world.createExplosion(playerEntity, playerEntity.x, playerEntity.y, playerEntity.z, 15.0f, World.ExplosionSourceType.BLOCK)
-
+		val overworld = world.server?.getWorld(World.OVERWORLD)
+		if (overworld != null && world != overworld) {
+			playerEntity.moveToWorld(overworld)
+		}
 		playerEntity.teleport(world.spawnPos.x.toDouble(), world.spawnPos.y.toDouble(), world.spawnPos.z.toDouble())
 		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.WEAKNESS, 200))
 		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.SPEED, 600))
@@ -40,7 +44,6 @@ class Teleporter(settings: Settings?) : Item(settings) {
 		tooltip: MutableList<Text?>,
 		tooltipContext: TooltipContext?
 	) {
-
 		tooltip.add(Text.literal("Single Use").formatted(Formatting.RED).formatted(Formatting.BOLD))
 		tooltip.add(Text.literal("Teleports you back to spawn, for use in an emergency"))
 	}
