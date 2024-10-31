@@ -22,20 +22,24 @@ import net.minecraft.world.World
 
 class Teleporter(settings: Settings?) : Item(settings) {
 	override fun use(world: World, playerEntity: PlayerEntity, hand: Hand): TypedActionResult<ItemStack> {
-		playerEntity.playSound(SoundEvents.BLOCK_END_PORTAL_SPAWN, 10.0f, 2.0f)
+		// Play teleport sound and create an non-greifing explosion
+		playerEntity.playSound(SoundEvents.BLOCK_END_PORTAL_SPAWN, 2.5f, 2.0f)
 		playerEntity.getStackInHand(hand).count = 0
-		world.createExplosion(playerEntity, playerEntity.x, playerEntity.y, playerEntity.z, 15.0f, World.ExplosionSourceType.BLOCK)
+		world.createExplosion(playerEntity, playerEntity.x, playerEntity.y, playerEntity.z, 2.0f, World.ExplosionSourceType.BLOCK)
+
+		// Make sure player is in the overworld
 		val overworld = world.server?.getWorld(World.OVERWORLD)
 		if (overworld != null && world != overworld) {
 			playerEntity.moveToWorld(overworld)
 		}
+
+		// Teleport player
 		playerEntity.teleport(world.spawnPos.x.toDouble(), world.spawnPos.y.toDouble(), world.spawnPos.z.toDouble())
-		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.WEAKNESS, 200))
-		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.SPEED, 600))
-		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.DARKNESS, 200))
-		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.INVISIBILITY,1000))
-		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.RESISTANCE, 400))
-		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.REGENERATION, 600))
+
+		// Add generic status effects
+		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.WEAKNESS, 500, 3, false, false, false))
+		playerEntity.addStatusEffect(StatusEffectInstance(StatusEffects.INVISIBILITY, 400, 1, false, false, false))
+
 		return TypedActionResult.success(playerEntity.getStackInHand(hand))
 	}
 	override fun appendTooltip(
